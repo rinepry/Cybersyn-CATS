@@ -1,0 +1,66 @@
+---
+title: "Get Charlotte Transit Feed"
+output: html_notebook
+---
+
+TransitLand API Docs: https://www.transit.land/documentation/rest-api
+CATS GTFS Feed: https://www.transit.land/feeds/f-dnq-charlotteareatransitsystem
+
+Install packages
+```{r}
+install.packages("tidyverse")
+install.packages("httr")
+install.packages("jsonlite")
+```
+
+Load libraries
+```{r}
+library(tidyverse)
+library(httr)
+library(jsonlite)
+```
+
+Function to download and unzip data from an HTTP response
+```{r}
+download_and_unzip <- function(raw_data) {
+    # Create a temporary file path
+    temp_file <- tempfile()
+    
+    # Write the raw data to the temporary file
+    writeBin(raw_data, temp_file)
+    
+    # Unzip the downloaded file
+    tryCatch({
+      unzip(zipfile = temp_file)
+    }, error = function(e) {
+      message("Error unzipping file:", e)
+    })
+}
+```
+
+# Download latest feed from transit.land
+```{r}
+apiKey <- Sys.getenv("TRANSIT_LAND_API_KEY") # Set this in ".Renviron" file in working directory
+onestopID <- 'f-dnq-charlotteareatransitsystem'
+url <- paste("https://transit.land/api/v2/rest/feeds/",onestopID,"/download_latest_feed_version?apikey=",apiKey)
+downloadedData <- GET(url)
+```
+
+# Convert raw result to binary data and unzip it
+```{r}
+print(downloadedData) # Check for Status: 200
+zipped_data <- content(downloadedData, as = "raw")
+#print(zipped_data)
+download_and_unzip(zipped_data)
+```
+# Unzipped files:
+#  agency.txt
+#  calendar_dates.txt
+#  routes.txt
+#  shapes.txt
+#  stop_times.txt
+#  stops.txt
+#  trips.txt
+```{r}
+
+```
