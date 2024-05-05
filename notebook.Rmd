@@ -11,6 +11,7 @@ Install packages
 install.packages("tidyverse")
 install.packages("httr")
 install.packages("jsonlite")
+install.packages("httpcode")
 ```
 
 Load libraries
@@ -18,6 +19,7 @@ Load libraries
 library(tidyverse)
 library(httr)
 library(jsonlite)
+library(httpcode)
 ```
 
 ```{r}
@@ -28,6 +30,35 @@ print(getTransit.Land)
 ```
 
 ```{r}
-rawToChar(getTransit.Land$content)
-```
+content <- getTransit.Land[["content"]]
 
+# Function to download and unzip data from an HTTP response
+download_and_unzip <- function(response) {
+  # Check for successful response
+  if (content_status_code(response) == 200) {
+    # Extract content as raw vector
+    zipped_data <- content(response, as = "raw")
+    
+    # Create a temporary file path
+    temp_file <- tempfile()
+    
+    # Write the raw data to the temporary file
+    writeBin(zipped_data, temp_file)
+    
+    # Unzip the downloaded file
+    tryCatch({
+      unzip(zipfile = temp_file)
+    }, error = function(e) {
+      message("Error unzipping file:", e)
+    })
+    
+    # Optional: Remove the temporary file (uncomment if needed)
+    # unlink(temp_file)
+  } else {
+    message("Failed to download data:", content_status_code(response))
+  }
+}
+
+# Example usage: Replace "GET(your_http_url)" with your actual HTTP request
+download_and_unzip(getTransit.Land)
+```
