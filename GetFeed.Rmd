@@ -38,21 +38,22 @@ download_and_unzip <- function(raw_data) {
 }
 ```
 
-# Download latest feed from transit.land
+Download latest feed from transit.land
 ```{r}
 apiKey <- Sys.getenv("TRANSIT_LAND_API_KEY") # Set this in ".Renviron" file in working directory
 onestopID <- 'f-dnq-charlotteareatransitsystem'
-url <- paste("https://transit.land/api/v2/rest/feeds/",onestopID,"/download_latest_feed_version?apikey=",apiKey)
+url <- paste("https://transit.land/api/v2/rest/feeds/",onestopID,"/download_latest_feed_version?apikey=",apiKey, sep = "")
 downloadedData <- GET(url)
 ```
 
-# Convert raw result to binary data and unzip it
+Convert raw result to binary data and unzip it
 ```{r}
 print(downloadedData) # Check for Status: 200
 zipped_data <- content(downloadedData, as = "raw")
 #print(zipped_data)
 download_and_unzip(zipped_data)
 ```
+
 # Unzipped files:
 #  agency.txt
 #  calendar_dates.txt
@@ -61,6 +62,14 @@ download_and_unzip(zipped_data)
 #  stop_times.txt
 #  stops.txt
 #  trips.txt
-```{r}
 
+Import datasets from text
+```{r}
+agency <- read_csv("agency.txt")
+calendar_dates <- read_csv("calendar_dates.txt")
+routes <- read_csv("routes.txt")
+shapes <- read_csv("shapes.txt")
+stop_times <- read_csv("stop_times.txt")
+stops <- read_csv("stops.txt")
+trips <- read_csv("trips.txt")
 ```
