@@ -1,0 +1,67 @@
+---
+title: "Charlotte for Public Transit"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#101010"
+      fg: "#FDF7F7" 
+      primary: "#0068b3"
+      base_font:
+        google: Roboto
+      code_font:
+        google: Source Code Pro
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{css}
+<style>
+.navbar {
+}
+.navbar-brand {
+  color:white;
+}
+</style>
+```
+
+```{r global, include=FALSE}
+source("script.R")
+
+validation <- validate_gtfs(gtfs)
+route_frequency <- get_route_frequency(gtfs)
+stop_frequency <- get_stop_frequency(gtfs)
+summary(gtfs)
+```
+
+Column {data-width=500 .tabset}
+-----------------------------------------------------------------------
+
+### Map
+
+```{r}
+map
+```
+
+### Service Schedule
+
+```{r}
+ggplotly(patterns)
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Route Frequency
+
+```{r}
+ggplotly(route_freq_plot)
+```
+
+### Stop Frequency
+
+```{r}
+stop_freq_table
+```
+
+

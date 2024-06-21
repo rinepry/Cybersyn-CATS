@@ -3,8 +3,10 @@ title: "CATS"
 output: html_notebook
 ---
 
+<!--
 https://gtfs-validator-results.mobilitydata.org/e43d2d30-b810-4c75-8276-84e831c293f6/report.html
 https://hub.arcgis.com/datasets/d6f7ee6129e241cc9b6f75978e47128b_0/about
+-->
 
 Load libraries
 ```{r load libraries}
@@ -13,6 +15,7 @@ library(tidytransit)
 library(sf)
 library(colorspace)
 library(zipcodeR)
+library(flexdashboard)
 ```
 
 Get feed
@@ -36,7 +39,7 @@ print(gtfs)
 ```
 
 Stops and shapes to sf objects
-```{r}
+```{r stops and shapes}
 stops_sf <- stops_as_sf(stops)
 shapes_sf <- shapes_as_sf(shapes)
 
@@ -44,6 +47,7 @@ head(stops_sf)
 head(shapes_sf)
 ```
 
+Download county information
 ```{r}
 counties <- bind_rows(search_county("mecklenburg", "nc"),
                       search_county("union", "nc"),
@@ -58,6 +62,7 @@ counties <- bind_rows(search_county("mecklenburg", "nc"),
 
 head(counties)
 ```
+
 
 ```{r}
 postal_sf <- read_sf("postal_code/USA_ZIP_Code_Boundaries.shp") %>%
@@ -85,7 +90,7 @@ mhi_map <- ggplot() +
   geom_sf(data = postal_sf %>% group_by(county) %>% summarise(),
           color = "black", fill = "transparent", size = 1) +
   scale_fill_continuous_sequential(palette = "Blues",
-                                   name = "Median Household Income") +
+                                   name = "") +
   theme_void()
 
 mhi_map
@@ -114,3 +119,30 @@ housing_map <- ggplot() +
 
 housing_map
 ```
+
+
+```{r}
+headways <- get_stop_frequency(gtfs, start_time = "06:00:00", end_time = "22:00:00", service_ids = gtfs$.$dates_services$service_id)
+
+head(headways)
+```
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  setView(lng = -80.8431, lat = 35.2271, zoom = 14) %>%
+  addMarkers(lng = stops$stop_lon, lat = stops$stop_lat, popup = stops$stop_name) %>%
+  addPolylines(data = shapes_sf, color = "blue", stroke = 0.5, opacity = 0.5)
+```
+
+```{r}
+calendar <- tibble(date = unique(gtfs$.$dates_services$date)) %>% 
+  mutate(
+    weekday = (function(date) {
+      c("Sunday", "Monday", "Tuesday", 
+        "Wednesday", "Thursday", "Friday", 
+        "Saturday")[as.POSIXlt(date)$wday + 1]
+    })(date)
+  )
+```
+
