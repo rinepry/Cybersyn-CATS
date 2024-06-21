@@ -1,0 +1,116 @@
+---
+title: "CATS"
+output: html_notebook
+---
+
+https://gtfs-validator-results.mobilitydata.org/e43d2d30-b810-4c75-8276-84e831c293f6/report.html
+https://hub.arcgis.com/datasets/d6f7ee6129e241cc9b6f75978e47128b_0/about
+
+Load libraries
+```{r load libraries}
+library(tidyverse)
+library(tidytransit)
+library(sf)
+library(colorspace)
+library(zipcodeR)
+```
+
+Get feed
+```{r get feed}
+feed <- "https://gtfsrealtime.ridetransit.org/GTFSStatic/api/GTFSDownload/GTFS.zip"
+gtfs <- read_gtfs(feed)
+summary(gtfs)
+```
+
+GTFS to tibble
+```{r GTFS to tibble}
+agency <- gtfs$agency
+stops <- gtfs$stops
+routes <- gtfs$routes
+trips <- gtfs$trips
+stop_times <- gtfs$stop_times
+calendar_dates <- gtfs$calendar_dates
+shapes <- gtfs$shapes
+dates_services <- gtfs$.$dates_services
+print(gtfs)
+```
+
+Stops and shapes to sf objects
+```{r}
+stops_sf <- stops_as_sf(stops)
+shapes_sf <- shapes_as_sf(shapes)
+
+head(stops_sf)
+head(shapes_sf)
+```
+
+```{r}
+counties <- bind_rows(search_county("mecklenburg", "nc"),
+                      search_county("union", "nc"),
+                      search_county("cabarrus", "nc"),
+                      search_county("gaston", "nc"),
+                      search_county("york", "sc"),
+                      search_county("iredell", "nc"),
+                      search_county("rowan", "nc"),
+                      search_county("lincoln", "nc"),
+                      search_county("lancaster", "sc"),
+                      search_county("cleveland", "nc"))
+
+head(counties)
+```
+
+```{r}
+postal_sf <- read_sf("postal_code/USA_ZIP_Code_Boundaries.shp") %>%
+  merge(counties, by.x = "ZIP_CODE", by.y = "zipcode", all.x = FALSE, all.y = TRUE) %>%
+  filter(!is.na(OBJECTID), ZIP_CODE %in% counties$zipcode) %>%
+  select(ZIP_CODE, OBJECTID, PO_NAME, county, state, population, population_density, housing_units, occupied_housing_units, median_household_income, bounds_west, bounds_east, bounds_north, bounds_south, geometry) %>%
+  rename(zipcode = ZIP_CODE, objectid = OBJECTID, city = PO_NAME)
+
+postal_sf$county <- str_remove(postal_sf$county, " County")
+str(postal_sf)
+```
+
+```{r}
+county_map <- ggplot() +
+  geom_sf(data = postal_sf, aes(fill = county)) +
+  labs(fill = "Charlotte Metro Counties") +
+  theme_void()
+
+county_map
+```
+
+```{r}
+mhi_map <- ggplot() +
+  geom_sf(data = postal_sf, color = NA, aes(fill = median_household_income)) +
+  geom_sf(data = postal_sf %>% group_by(county) %>% summarise(),
+          color = "black", fill = "transparent", size = 1) +
+  scale_fill_continuous_sequential(palette = "Blues",
+                                   name = "Median Household Income") +
+  theme_void()
+
+mhi_map
+```
+
+```{r}
+pop_map <- ggplot() +
+  geom_sf(data = postal_sf, color = NA, aes(fill = population_density)) +
+  geom_sf(data = postal_sf %>% group_by(county) %>% summarise(),
+          color = "black", fill = "transparent", size = 1) +
+  scale_fill_continuous_sequential(palette = "Blues",
+                                   name = "Population Density") +
+  theme_void()
+
+pop_map
+```
+
+```{r}
+housing_map <- ggplot() +
+  geom_sf(data = postal_sf, color = NA, aes(fill = occupied_housing_units/housing_units)) +
+  geom_sf(data = postal_sf %>% group_by(county) %>% summarise(),
+          color = "black", fill = "transparent", size = 1) +
+  scale_fill_continuous_sequential(palette = "Blues",
+                                   name = "Percentage of Occupied Houses") +
+  theme_void()
+
+housing_map
+```
