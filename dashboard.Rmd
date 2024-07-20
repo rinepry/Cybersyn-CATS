@@ -2,6 +2,7 @@
 title: "Charlotte for Public Transit"
 output: 
   flexdashboard::flex_dashboard:
+    source_code: embed
     theme:
       bg: "#101010"
       fg: "#FDF7F7" 
@@ -12,7 +13,7 @@ output:
         google: Source Code Pro
     orientation: columns
     vertical_layout: fill
-runtime: shiny
+#   runtime: shiny
 ---
 
 ```{css}
@@ -26,42 +27,49 @@ runtime: shiny
 ```
 
 ```{r global, include=FALSE}
-source("script.R")
-
-validation <- validate_gtfs(gtfs)
-route_frequency <- get_route_frequency(gtfs)
-stop_frequency <- get_stop_frequency(gtfs)
-summary(gtfs)
+# load scripts
+source("main.R")
+source("accessibility.R")
 ```
 
-Column {data-width=500 .tabset}
+Inputs {.sidebar}
+-------------------------------------
+
+* We demand that CATS:
+  * **INCREASE** frequencies
+  * **EXPAND** routes and schedules
+  * **BUILD** shelters at all stops
+
+```{r sidebar}
+```
+
+Column {data-width=650 .tabset}
+-----------------------------------------------------------------------
+
+### Service Schedule
+
+```{r col1tab1}
+ggplotly(date_servicepattern_plot)
+```
+
+### Headways
+
+```{r col1tab2}
+route_headways_plot
+```
+
+### Departures
+
+```{r col1tab3}
+stop_departures_plot
+```
+
+Column {data-width=350}
 -----------------------------------------------------------------------
 
 ### Map
 
-```{r}
-map
+```{r col2tab1}
+
 ```
-
-### Service Schedule
-
-```{r}
-ggplotly(patterns)
-```
-
-Column {data-width=500}
------------------------------------------------------------------------
-
-### Route Frequency
-
-```{r}
-ggplotly(route_freq_plot)
-```
-
-### Stop Frequency
-
-```{r}
-stop_freq_table
-```
-
 

@@ -1,0 +1,13 @@
+name: clt_transit
+title: dashboard
+username: cfqrpq-w0javier
+account: cfqrpq-w0javier
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12215355
+bundleId: 8886150
+url: https://cfqrpq-w0javier.shinyapps.io/clt_transit/
+version: 1
+asMultiple: TRUE
+asStatic: FALSE
+ignoredFiles: notebook.Rmd
