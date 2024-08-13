@@ -2,3 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
+*.db
+agency.txt
+calendar_dates.txt
+routes.txt
+shapes.txt
+stop_times.txt
+stops.txt
+trips.txt

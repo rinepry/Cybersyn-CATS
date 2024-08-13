@@ -7,8 +7,9 @@ library(gtfsway)
 library(sf)
 library(leaflet)
 library(plotly)
+library(RSQLite)
 
-# load scripts
+# load Census scripts
 source("metro.R")
 
 # get feed
@@ -42,6 +43,29 @@ stops_sf <- stops_as_sf(gtfs$stops)
 trips_sf <- get_trip_geometry(gtfs_sf, gtfs_sf$trips$trip_id)
 routes_sf <- get_route_geometry(gtfs_sf, gtfs_sf$routes$route_id)
 
+## Load data into SQLite DB ## 
+conn <- dbConnect(RSQLite::SQLite(), "cats.db")
+# Write datasets to the DB as tables - initial load & check for updates
+dbWriteTable(conn, "routes", gtfs$routes)
+dbWriteTable(conn, "stops", stops_sf)
+dbWriteTable(conn, "stop_times", gtfs$stop_times)
+dbWriteTable(conn, "trips", trips_sf)
+# TODO: Figure out best way to flatten and use data in gtfs_tu, CATS-provided delay and arrival updates
+
+# Constant load / load this data as close to real-time as possible
+# Write a table by appending the data frames inside the list
+for(k in 1:length(gtfs_vp)){
+  dbWriteTable(conn,"vehicle_positions", gtfs_vp[[k]], append = TRUE)
+}
+# NOTE: gtfs_vp[[8]][["timestamp"]] = Epoch/UNIX timestamp, need to convert to EST
+
+# List all the tables available in the database
+dbListTables(conn)
+
+# Close DB connection
+dbDisconnect(conn)
+
+## Load maps ##
 metro_map <- metro %>%
   ggplot() +
   geom_sf(data = metro, aes(fill = county)) +
@@ -72,13 +96,13 @@ map <- leaflet() %>%
     zoom = 12
   ) %>%
   addPolylines(
-    data = route_table,
+    data = routes_sf, #route_table
     color = "blue",
     stroke = 0.5,
     opacity = 0.5
   ) %>%
   addCircleMarkers(
-    data = stop_table,
+    data = stops_sf, #stop_table
     color = "red",
     stroke = 0.5,
     opacity = 1
