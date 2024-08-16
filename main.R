@@ -48,7 +48,7 @@ conn <- dbConnect(RSQLite::SQLite(), "cats.db")
 # Write datasets to the DB as tables - initial load & check for updates
 dbWriteTable(conn, "routes", gtfs$routes)
 dbWriteTable(conn, "stops", stops_sf)
-dbWriteTable(conn, "stop_times", gtfs$stop_times)
+dbWriteTable(conn, "stop_times", gtfs$stop_times) #NOTE: Convert <time> columns into hours/minutes, values in DB as seconds, 24-hour time
 dbWriteTable(conn, "trips", trips_sf)
 # TODO: Figure out best way to flatten and use data in gtfs_tu, CATS-provided delay and arrival updates
 

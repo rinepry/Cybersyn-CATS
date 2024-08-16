@@ -1,0 +1,5 @@
+routes - route_id, route_long_name
+stop_times - trip_id, arrival_time (epoch w/o date), stop_id
+stops - stop_id, stop_name, geometry (WKT format)
+trips - shape_id, route_id, trip_id, trip_headsign, direction_id, block_id, geometry (WKT format)
+vehicle_positions - trip_id, route_id, lat, lon, timestamp (unix/epoch), vehicle_id, current_status (number, find out what this means)
